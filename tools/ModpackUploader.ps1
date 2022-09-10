@@ -283,7 +283,7 @@ if ($ENABLE_MODPACK_UPLOADER_CURSE_MODULE) {
     Write-Host ""
     Write-Host "######################################" -ForegroundColor Cyan
     Write-Host ""
-    $Response = Curl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:CURSEFORGE_UPLOADAPI_TOKEN" -H "Accept: application/json" -H X-Api-Token:CURSEFORGE_UPLOADAPI_TOKEN -F metadata=$CLIENT_METADATA -F file=@"$CLIENT_ZIP_NAME.zip" --progress-bar | ConvertFrom-Json
+    $Response = Curl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:$CURSEFORGE_UPLOADAPI_TOKEN" -H "Accept: application/json" -H X-Api-Token:$CURSEFORGE_UPLOADAPI_TOKEN -F metadata=$CLIENT_METADATA -F file=@"$CLIENT_ZIP_NAME.zip" --progress-bar | ConvertFrom-Json
     $ResponseId = $Response.id
 
     Write-Host ""
@@ -353,7 +353,7 @@ if ($ENABLE_SERVER_FILE_MODULE -and $ENABLE_MODPACK_UPLOADER_CURSE_MODULE) {
     Write-Host "######################################" -ForegroundColor Cyan
     Write-Host ""
     $SERVER_UPLOAD_ZIP = "$SERVER_ZIP_NAME.zip"
-    $ResponseServer = Curl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:CURSEFORGE_UPLOADAPI_TOKEN" -H "Accept: application/json" -H X-Api-Token:CURSEFORGE_UPLOADAPI_TOKEN -F metadata=$SERVER_METADATA -F file=@$SERVER_UPLOAD_ZIP --progress-bar
+    $ResponseServer = Curl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:$CURSEFORGE_UPLOADAPI_TOKEN" -H "Accept: application/json" -H X-Api-Token:$CURSEFORGE_UPLOADAPI_TOKEN -F metadata=$SERVER_METADATA -F file=@$SERVER_UPLOAD_ZIP --progress-bar
 }
 
 Clear-SleepHost

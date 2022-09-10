@@ -73,7 +73,7 @@ $CLIENT_CHANGELOG = "The Changelog is currently being written."
 # @(8134) - is Minecraft 1.16.4
 # @(9008) - is Minecraft 1.18.2
 # More can be found by running GetGameVersions
-$GAME_VERSIONS = @(9008)
+$GAME_VERSION = 9008
 
 # Can be "alpha", "beta" or "release"
 $CLIENT_RELEASE_TYPE = "alpha"
