@@ -1,0 +1,9 @@
+tools/ChangelogGenerator.jar
+tools/CFExporter
+tools/CFExporter.exe
+tools/ModpackDownloder
+tools/ModpackDownloder.exe
+
+mods.json
+secrets.ps1
+versions.json

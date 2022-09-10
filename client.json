@@ -1,0 +1,7 @@
+{
+    "packAuthor": "John_Doe",
+    "minecraftVersion": "1.16.5",
+    "modLoader": "forge",
+    "modLoaderVersion": "36.2.39",
+    "includes": ["config", "kubejs", "resources", "scripts"]
+}

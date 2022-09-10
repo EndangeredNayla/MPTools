@@ -144,7 +144,7 @@ if ($ENABLE_CURSE_CLIENT_MODULE) {
         }
     }
     elseif ($IsWindows) {
-        if (!(Test-Path ./tools/CFExporter) -or $ENABLE_ALWAYS_UPDATE_APPS) {
+        if (!(Test-Path ./tools/CFExporter.exe) -or $ENABLE_ALWAYS_UPDATE_APPS) {
         	Write-Host "######################################" -ForegroundColor Cyan
             Write-Host ""
             Write-Host "Downloading CFExporter..." -ForegroundColor Green
@@ -155,7 +155,7 @@ if ($ENABLE_CURSE_CLIENT_MODULE) {
             Remove-Item ./CFExporter -Recurse -Force -ErrorAction SilentlyContinue
             Download-GithubRelease -repo "Gaz492/CFExporter" -file ./$CFExporterDLWindows
             New-Item "./tools" -ItemType "directory" -Force -ErrorAction SilentlyContinue
-            7Zip e -bd "$CFExporterDLWindows" "CFExporter.exe"
+            7Zip e -bd -aoa "$CFExporterDLWindows" "CFExporter.exe"
             Move-Item -Path "CFExporter.exe" -Destination ./tools/CFExporter.exe -ErrorAction SilentlyContinue
             Remove-Item "$CFExporterDLWindows" -Force -ErrorAction SilentlyContinue
 
@@ -173,18 +173,18 @@ if ($ENABLE_CURSE_CLIENT_MODULE) {
     Remove-Item "tmp" -Recurse -Force -ErrorAction SilentlyContinue
     if ($IsLinux -or $IsMacOS) {
         #Lets compile the Curse Manifest
-        ./tools/CFExporter -n "$CLIENT_NAME" -v "$MODPACK_VERSION" -o "." -c "./client.json"
+        ./tools/CFExporter -n "$CLIENT_NAME" -v "$MODPACK_VERSION" -o "." -c "client.json"
     }
     elseif ($IsWindows) {
         #Lets compile the Curse Manifest
-        ./tools/CFExporter.exe -n "$CLIENT_NAME" -v "$MODPACK_VERSION" -o "." -c "./client.json"
+        ./tools/CFExporter.exe -n "$CLIENT_NAME" -v "$MODPACK_VERSION" -o "." -c "client.json"
     }
     #Now lets rename it to the name you selected in the settings.ps1
     Rename-Item -Path "$CLIENT_NAME-$MODPACK_VERSION.zip" -NewName "$CLIENT_ZIP_NAME.zip" -ErrorAction SilentlyContinue
     
     #Nows lets extract the manifest.json from the ZIP for proper version controlling.
     Remove-Item mods.json -Force -ErrorAction SilentlyContinue
-    7Zip e -bd "$CLIENT_ZIP_NAME.zip" manifest.json
+    7Zip e -bd -aoa "$CLIENT_ZIP_NAME.zip" manifest.json
     Rename-Item -Path manifest.json -NewName mods.json -Force -ErrorAction SilentlyContinue
     Remove-Item "tmp" -Recurse -Force -ErrorAction SilentlyContinue
     Clear-SleepHost
