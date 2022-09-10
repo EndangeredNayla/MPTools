@@ -151,8 +151,8 @@ $CLIENT_ZIP_NAME = "$CLIENT_NAME-$MODPACK_VERSION"
 # Syntax of the Previous Versions CLIENT ZIP File
 $LAST_MODPACK_ZIP_NAME = "$CLIENT_NAME-$LAST_MODPACK_VERSION"
 
-# Default: "$CLIENT_NAME $MODPACK_VERSION"
-$CLIENT_FILE_DISPLAY_NAME = "MyModpack $MODPACK_VERSION"
+# Default: "$CLIENT_NAME - $MODPACK_VERSION"
+$CLIENT_FILE_DISPLAY_NAME = "$CLIENT_NAME - $MODPACK_VERSION"
 
 # Must be a single string. Use Powershell escaping for new lines etc. New line is `n and indent is `t
 # Default: $CLIENT_CHANGELOG
