@@ -20,7 +20,7 @@ Almost everything can be toggled on/off in the settings.
 * ❌ [7-Zip](https://www.7-zip.org/download.html) by IgorPavlov
 * ✔️ [CFExporter](https://github.com/Gaz492/CFExporter) by [Gaz492](https://github.com/Gaz492/)
 * ❌ [cURL](https://curl.haxx.se/download.html) by RafaelSagula
-* ✔️ [Curse Changelog Generator](https://github.com/TheRandomLabs/ChangelogGenerator) by [TheRandomLabs](https://github.com/TheRandomLabs -  Automatically Downloaded
+* ✔️ [Curse Changelog Generator](https://github.com/TheRandomLabs/ChangelogGenerator) by [TheRandomLabs](https://github.com/TheRandomLabs) -  Automatically Downloaded
 * ✔️ [ModpackDownloader-Next](https://github.com/EndangeredNayla/ModpackDownloader-Next) originally authored by [Chon33](https://github.com/Chon33/) and forked by [me](https://github.com/EndangeredNayla)
 
 ❌ means not Automatically Downloaded | ✔️ means Automatically Downlaoded
