@@ -1,6 +1,6 @@
-# Modpack Uploader
+# MPTools
 
-Modpack Uploader is a Suite of Tools for Modpack Developers.
+MPTools is a Suite of Tools for Modpack Developers.
 
 These tools can automate the process of uploading modpacks to CurseForge.
 It creates a modpack manifest, which is then posted along with metadata to Curseforge for upload.

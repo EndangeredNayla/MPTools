@@ -1,4 +1,5 @@
-Set-Location ".."
+Set-Location "$PSScriptRoot\.."
+
 . .\settings.ps1
 . .\secrets.ps1
 
@@ -12,26 +13,24 @@ function Download-GithubRelease {
         $file
     )
 
-    $releases = "https://api.github.com/repos/$repo/releases"
+    $GITHUB_TOKEN_GERMANE = @($GITHUB_TOKEN)
+
+    $BASE64TOKEN = [System.Convert]::ToBase64String([char[]]"$GITHUB_TOKEN_GERMANE");
+    $releases = "https://api.github.com/repos/$repo/releases?access_token=$GITHUB_TOKEN_GERMANE"
+
+    $Headers = @{
+        Authorization = 'Basic {0}' -f $Base64Token;
+    };
 
     Write-Host "Determining latest release of $repo"
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $tag = (Invoke-WebRequest -Uri $releases -UseBasicParsing | ConvertFrom-Json)[0].tag_name
+    $tag = (Invoke-WebRequest -Uri $releases -Headers $Headers -UseBasicParsing | ConvertFrom-Json)[0].tag_name
 
     $download = "https://github.com/$repo/releases/download/$tag/$file"
 
-    if ($IsWindows) {
-        $name = $file.Split(".")[0]
-    }
-
     Write-Host Dowloading...
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    Invoke-WebRequest $download -Out $file
-
-    # Cleaning up target dir
-    if ($IsWindows) {
-        Remove-Item $name -Recurse -Force -ErrorAction SilentlyContinue
-    }
+    Invoke-WebRequest $download -Out $file -Headers $Headers
 }
 
 function Clear-SleepHost {
@@ -46,15 +45,15 @@ if ($IsLinux) {
         #If Program is NOT installed stop the script
         return
     }
-    Set-Alias sz "7z"
+    Set-Alias 7Zip "7z"
 
     #Lets Check if the user has Curl Installed
     if (-not (test-path "/usr/bin/curl")) { 
-        Write-Host "Curl needed to use the ModpackUploader."
+        Write-Host "cURL needed to use the ModpackUploader."
         #If Program is NOT installed stop the script
         return
     }
-    Set-Alias cl "curl"
+    Set-Alias Curl "curl"
 
 }
 elseif ($IsMacOS) {
@@ -65,23 +64,23 @@ elseif ($IsMacOS) {
         #If Program is NOT installed stop the script
         return
     }
-    Set-Alias sz "7z"
+    Set-Alias 7Zip "7z"
 
     #Lets Check if the user has Curl Installed
     if (-not (test-path "/usr/bin/curl")) { 
-        Write-Host "Curl needed to use the ModpackUploader."
+        Write-Host "cURL needed to use the ModpackUploader."
         #If Program is NOT installed stop the script
         return
     }
-    Set-Alias cl "curl"
+    Set-Alias Curl "curl"
 
 }
 elseif ($IsWindows) {
     if (test-path "$env:ProgramFiles\7-Zip\7z.exe") {
-        Set-Alias sz "$env:ProgramFiles\7-Zip\7z.exe"
+        Set-Alias 7Zip "$env:ProgramFiles\7-Zip\7z.exe"
     }
     elseif (test-path "$env:USERPROFILE/scoop/apps/7zip/current/7z.exe") {
-        Set-Alias sz "$env:USERPROFILE/scoop/apps/7zip/current/7z.exe"
+        Set-Alias 7Zip "$env:USERPROFILE/scoop/apps/7zip/current/7z.exe"
     }
     else {
         Write-Host "7-Zip needed to use the ModpackUploader."
@@ -90,11 +89,11 @@ elseif ($IsWindows) {
     }
 
     #Lets Check if the user has Curl Installed
-    if (-not (test-path "C:\Windows\System32\curl.exe")) {
-        Set-Alias cl "C:\Windows\System32\curl.exe"
+    if (test-path "C:\Windows\System32\curl.exe") {
+        Set-Alias Curl "C:\Windows\System32\curl.exe"
     }
     elseif (test-path "$env:USERPROFILE/scoop/apps/curl/current/bin/curl.exe") {
-        Set-Alias cl "$env:USERPROFILE/scoop/apps/curl/current/bin/curl.exe"
+        Set-Alias Curl "$env:USERPROFILE/scoop/apps/curl/current/bin/curl.exe"
     }
     else {
         Write-Host "cURL needed to use the ModpackUploader."
@@ -106,69 +105,60 @@ elseif ($IsWindows) {
 if ($ENABLE_CURSE_CLIENT_MODULE) {
     #Lets Check if the user has Twitch Export Builder Installed
     if ($IsLinux) {
-        if (!(Test-Path ./tools/TwitchExportBuilder) -or $ENABLE_ALWAYS_UPDATE_JARS) {
+        if (!(Test-Path ./tools/CFExporter) -or $ENABLE_ALWAYS_UPDATE_APPS) {
         	Write-Host "######################################" -ForegroundColor Cyan
             Write-Host ""
-            Write-Host "Downloading Twitch Export Builder..." -ForegroundColor Green
+            Write-Host "Downloading CFExporter..." -ForegroundColor Green
             Write-Host ""
             Write-Host "######################################" -ForegroundColor Cyan
             Write-Host ""
             #Lets remove the existing copy and grab a fresh copy
-            Remove-Item ./TwitchExportBuilder -Recurse -Force -ErrorAction SilentlyContinue
-            Download-GithubRelease -repo "Gaz492/twitch-export-builder" -file ./$TwitchExportBuilderDLLinux
+            Remove-Item ./CFExporter -Recurse -Force -ErrorAction SilentlyContinue
+            Download-GithubRelease -repo "Gaz492/CFExporter" -file ./$CFExporterDLLinux
             New-Item "./tools" -ItemType "directory" -Force -ErrorAction SilentlyContinue
-            Move-Item -Path "$TwitchExportBuilderDLLinux" -Destination ./tools/TwitchExportBuilder -ErrorAction SilentlyContinue
+            tar -xzvf "$CFExporterDLLinux" "CFExporter"
+            Move-Item -Path "CFExporter" -Destination ./tools/CFExporter -ErrorAction SilentlyContinue
+            Remove-Item "$CFExporterDLLinux" -Force -ErrorAction SilentlyContinue
             #Lets also mark it executable
-            chmod +x ./TwitchExportBuilder
+            chmod +x ./CFExporter
         }
     }
     if ($IsMacOS) {
-        if (!(Test-Path ./tools/TwitchExportBuilder) -or $ENABLE_ALWAYS_UPDATE_JARS) {
+    # For now lets run this under Rosetta
+        if (!(Test-Path ./tools/CFExporter) -or $ENABLE_ALWAYS_UPDATE_APPS) {
         	Write-Host "######################################" -ForegroundColor Cyan
             Write-Host ""
-            Write-Host "Downloading Twitch Export Builder..." -ForegroundColor Green
+            Write-Host "Downloading CFExporter..." -ForegroundColor Green
             Write-Host ""
             Write-Host "######################################" -ForegroundColor Cyan
             Write-Host ""
             #Lets remove the existing copy and grab a fresh copy
-            Remove-Item ./TwitchExportBuilder -Recurse -Force -ErrorAction SilentlyContinue
-            Download-GithubRelease -repo "Gaz492/twitch-export-builder" -file ./$TwitchExportBuilderDLMac
+            Remove-Item ./CFExporter -Recurse -Force -ErrorAction SilentlyContinue
+            Download-GithubRelease -repo "Gaz492/CFExporter" -file ./$CFExporterDLMacIntel
             New-Item "./tools" -ItemType "directory" -Force -ErrorAction SilentlyContinue
-            Move-Item -Path "$TwitchExportBuilderDLMac" -Destination ./tools/TwitchExportBuilder -ErrorAction SilentlyContinue
+            tar -xzvf "$CFExporterDLMacIntel" "CFExporter"
+            Move-Item -Path "$CFExporter" -Destination ./tools/CFExporter -ErrorAction SilentlyContinue
+            Remove-Item "$CFExporterDLMacIntel" -Force -ErrorAction SilentlyContinue
             #Lets also mark it executable
-            chmod +x ./tools/TwitchExportBuilder
-        }
-    }
-    elseif ($IsLinux) {
-        if (!(Test-Path ./tools/TwitchExportBuilder) -or $ENABLE_ALWAYS_UPDATE_JARS) {
-        	Write-Host "######################################" -ForegroundColor Cyan
-            Write-Host ""
-            Write-Host "Downloading Twitch Export Builder..." -ForegroundColor Green
-            Write-Host ""
-            Write-Host "######################################" -ForegroundColor Cyan
-            Write-Host ""
-            #Lets remove the existing copy and grab a fresh copy
-            Remove-Item ./TwitchExportBuilder -Recurse -Force -ErrorAction SilentlyContinue
-            Download-GithubRelease -repo "Gaz492/twitch-export-builder" -file ./$TwitchExportBuilderDLLinux
-            New-Item "./tools" -ItemType "directory" -Force -ErrorAction SilentlyContinue
-            Move-Item -Path "$TwitchExportBuilderDLLinux" -Destination ./tools/TwitchExportBuilder -ErrorAction SilentlyContinue
-            #Lets also mark it executable
-            chmod +x ./tools/TwitchExportBuilder
+            chmod +x ./tools/CFExporter
         }
     }
     elseif ($IsWindows) {
-        if (!(Test-Path ./tools/TwitchExportBuilder.exe) -or $ENABLE_ALWAYS_UPDATE_JARS) {
+        if (!(Test-Path ./tools/CFExporter) -or $ENABLE_ALWAYS_UPDATE_APPS) {
         	Write-Host "######################################" -ForegroundColor Cyan
             Write-Host ""
-            Write-Host "Downloading Twitch Export Builder..." -ForegroundColor Green
+            Write-Host "Downloading CFExporter..." -ForegroundColor Green
             Write-Host ""
             Write-Host "######################################" -ForegroundColor Cyan
             Write-Host ""
             #Lets remove the existing copy and grab a fresh copy
-            Remove-Item TwitchExportBuilder.exe -Recurse -Force -ErrorAction SilentlyContinue
-            Download-GithubRelease -repo "Gaz492/twitch-export-builder" -file $TwitchExportBuilderDLWindows
-            New-Item "./tools" -ItemType directory -Force -ErrorAction SilentlyContinue
-            Move-Item -Path "$TwitchExportBuilderDLWindows" -Destination ./tools/TwitchExportBuilder.exe -ErrorAction SilentlyContinue
+            Remove-Item ./CFExporter -Recurse -Force -ErrorAction SilentlyContinue
+            Download-GithubRelease -repo "Gaz492/CFExporter" -file ./$CFExporterDLWindows
+            New-Item "./tools" -ItemType "directory" -Force -ErrorAction SilentlyContinue
+            7Zip e -bd "$CFExporterDLWindows" "CFExporter.exe"
+            Move-Item -Path "CFExporter.exe" -Destination ./tools/CFExporter.exe -ErrorAction SilentlyContinue
+            Remove-Item "$CFExporterDLWindows" -Force -ErrorAction SilentlyContinue
+
         }
     }
     Clear-SleepHost
@@ -183,25 +173,25 @@ if ($ENABLE_CURSE_CLIENT_MODULE) {
     Remove-Item "tmp" -Recurse -Force -ErrorAction SilentlyContinue
     if ($IsLinux -or $IsMacOS) {
         #Lets compile the Curse Manifest
-        ./tools/TwitchExportBuilder -n "$CLIENT_NAME" -p "$MODPACK_VERSION"
+        ./tools/CFExporter -n "$CLIENT_NAME" -v "$MODPACK_VERSION" -o "." -c "./client.json"
     }
     elseif ($IsWindows) {
         #Lets compile the Curse Manifest
-        ./tools/TwitchExportBuilder.exe -n "$CLIENT_NAME" -p "$MODPACK_VERSION"
+        ./tools/CFExporter.exe -n "$CLIENT_NAME" -v "$MODPACK_VERSION" -o "." -c "./client.json"
     }
     #Now lets rename it to the name you selected in the settings.ps1
     Rename-Item -Path "$CLIENT_NAME-$MODPACK_VERSION.zip" -NewName "$CLIENT_ZIP_NAME.zip" -ErrorAction SilentlyContinue
     
     #Nows lets extract the manifest.json from the ZIP for proper version controlling.
     Remove-Item mods.json -Force -ErrorAction SilentlyContinue
-    sz e -bd "$CLIENT_ZIP_NAME.zip" manifest.json
+    7Zip e -bd "$CLIENT_ZIP_NAME.zip" manifest.json
     Rename-Item -Path manifest.json -NewName mods.json -Force -ErrorAction SilentlyContinue
     Remove-Item "tmp" -Recurse -Force -ErrorAction SilentlyContinue
     Clear-SleepHost
 }
 
-if ($ENABLE_CHANGELOG_GENERATOR_MODULE -and $ENABLE_MODPACK_UPLOADER_MODULE) {
-    if (!(Test-Path "./tools/ChangelogGenerator.jar") -or $ENABLE_ALWAYS_UPDATE_JARS) {
+if ($ENABLE_CHANGELOG_GENERATOR_MODULE -and $ENABLE_MODPACK_UPLOADER_CURSE_MODULE) {
+    if (!(Test-Path "./tools/ChangelogGenerator.jar") -or $ENABLE_ALWAYS_UPDATE_APPS) {
         Write-Host "######################################" -ForegroundColor Cyan
         Write-Host ""
         Write-Host "Downloading Modpack Chanelog Generator..." -ForegroundColor Green
@@ -229,8 +219,10 @@ if ($ENABLE_CHANGELOG_GENERATOR_MODULE -and $ENABLE_MODPACK_UPLOADER_MODULE) {
 
 if ($ENABLE_GITHUB_CHANGELOG_GENERATOR_MODULE) {
 
-    $BASE64TOKEN = [System.Convert]::ToBase64String([char[]]$GITHUB_TOKEN);
-    $Uri = "https://api.github.com/repos/$GITHUB_NAME/$GITHUB_REPOSITORY/releases?access_token=$GITHUB_TOKEN"
+    $GITHUB_TOKEN_GERMANE = @($GITHUB_TOKEN)
+
+    $BASE64TOKEN = [System.Convert]::ToBase64String([char[]]"$GITHUB_TOKEN_GERMANE");
+    $Uri = "https://api.github.com/repos/$GITHUB_NAME/$GITHUB_REPOSITORY/releases?access_token=$GITHUB_TOKEN_GERMANE"
 
     $Headers = @{
         Authorization = 'Basic {0}' -f $Base64Token;
@@ -265,15 +257,16 @@ if ($ENABLE_GITHUB_CHANGELOG_GENERATOR_MODULE) {
     Start-Process Powershell.exe -Argument "-NoProfile -Command github_changelog_generator --since-tag $CHANGES_SINCE_VERSION"
 }
 
-if ($ENABLE_MODPACK_UPLOADER_MODULE) {
+if ($ENABLE_MODPACK_UPLOADER_CURSE_MODULE) {
 
+    $GAME_VERSION_GERMANE = @($GAME_VERSION)
 
     $CLIENT_METADATA =
     "{
     'changelog': `'$CLIENT_CHANGELOG`',
     'changelogType': `'$CLIENT_CHANGELOG_TYPE`',
     'displayName': `'$CLIENT_FILE_DISPLAY_NAME`',
-    'gameVersions': [$GAME_VERSIONS],
+    'gameVersions': [$ENABLE_MODPACK_UPLOADER_CURSE_MODULE],
     'releaseType': `'$CLIENT_RELEASE_TYPE`'
     }"
 
@@ -286,11 +279,11 @@ if ($ENABLE_MODPACK_UPLOADER_MODULE) {
     Write-Host ""
     Write-Host "######################################" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "Uploading client files..." -ForegroundColor Green
+    Write-Host "Uploading Client files..." -ForegroundColor Green
     Write-Host ""
     Write-Host "######################################" -ForegroundColor Cyan
     Write-Host ""
-    $Response = cl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:$CURSEFORGE_TOKEN" -H "Accept: application/json" -H X-Api-Token:$CURSEFORGE_TOKEN -F metadata=$CLIENT_METADATA -F file=@"$CLIENT_ZIP_NAME.zip" --progress-bar | ConvertFrom-Json
+    $Response = Curl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:CURSEFORGE_UPLOADAPI_TOKEN" -H "Accept: application/json" -H X-Api-Token:CURSEFORGE_UPLOADAPI_TOKEN -F metadata=$CLIENT_METADATA -F file=@"$CLIENT_ZIP_NAME.zip" --progress-bar | ConvertFrom-Json
     $ResponseId = $Response.id
 
     Write-Host ""
@@ -319,13 +312,13 @@ if ($ENABLE_SERVER_FILE_MODULE) {
     Copy-Item -Path $SERVER_CONTENTS_TO_ZIP -Destination "tmp" -Recurse -Force -ErrorAction SilentlyContinue
 
     Remove-Item "Server.zip" -Recurse -Force -ErrorAction SilentlyContinue
-    sz a -tzip "Server.zip" $SERVER_CONTENTS_TO_ZIP
+    7Zip a -tzip "Server.zip" $SERVER_CONTENTS_TO_ZIP
     Remove-Item "$SERVER_ZIP_NAME.zip" -Recurse -Force -ErrorAction SilentlyContinue
 
     Write-Host "Removing Client Mods from Server Files" -ForegroundColor Cyan
-    foreach ($clientMod in $CLIENT_MODS_TO_REMOVE_FROM_SERVER_FILES) {
-        Write-Host "Removing Client Mod $clientMod"
-        sz d Server.zip "mods/$clientMod*" | Out-Null
+    foreach ($ClientMod in $CLIENT_MODS_TO_REMOVE_FROM_SERVER_FILES) {
+        Write-Host "Removing Client Mod $ClientMod"
+        7Zip d Server.zip "mods/$ClientMod*" | Out-Null
     }
 
     Rename-Item -Path Server.zip -NewName "$SERVER_ZIP_NAME.zip"
@@ -335,7 +328,7 @@ if ($ENABLE_SERVER_FILE_MODULE) {
 }
 
 
-if ($ENABLE_SERVER_FILE_MODULE -and $ENABLE_MODPACK_UPLOADER_MODULE) {
+if ($ENABLE_SERVER_FILE_MODULE -and $ENABLE_MODPACK_UPLOADER_CURSE_MODULE) {
 
     $SERVER_METADATA =
     "{
@@ -360,7 +353,7 @@ if ($ENABLE_SERVER_FILE_MODULE -and $ENABLE_MODPACK_UPLOADER_MODULE) {
     Write-Host "######################################" -ForegroundColor Cyan
     Write-Host ""
     $SERVER_UPLOAD_ZIP = "$SERVER_ZIP_NAME.zip"
-    $ResponseServer = cl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:$CURSEFORGE_TOKEN" -H "Accept: application/json" -H X-Api-Token:$CURSEFORGE_TOKEN -F metadata=$SERVER_METADATA -F file=@$SERVER_UPLOAD_ZIP --progress-bar
+    $ResponseServer = Curl --url "https://minecraft.curseforge.com/api/projects/$CURSEFORGE_PROJECT_ID/upload-file" --user "$CURSEFORGE_USER`:CURSEFORGE_UPLOADAPI_TOKEN" -H "Accept: application/json" -H X-Api-Token:CURSEFORGE_UPLOADAPI_TOKEN -F metadata=$SERVER_METADATA -F file=@$SERVER_UPLOAD_ZIP --progress-bar
 }
 
 Clear-SleepHost
